@@ -144,16 +144,12 @@ font-size:14px;
 /* NEWS */
 
 .news{
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
 height:48px;
 background:#020617;
 display:flex;
 align-items:center;
 overflow:hidden;
-z-index:1000;
+border-top:1px solid rgba(255,255,255,.15);
 }
 
 .ticker{
@@ -275,7 +271,7 @@ autofocus
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbw6HIIbDBybUrADHLcbiJFri6ylIaCnEgcBajViqD8VTaXuHCT7EuEJ8-BwXRlr_4tZBA/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbxvE9mLATmYPgT2cSdH-MgO4NZQ7Ryg2-CR8QklKIjtd3hC0oee04SWXc9L_9qo9rx_YA/exec";
 
 let managerData=null;
 
@@ -403,12 +399,23 @@ events.sort((a,b)=> new Date(a.date)-new Date(b.date));
 
 events.forEach(ev=>{
 
-const thaiDate=new Date(ev.date)
-.toLocaleDateString('th-TH',{
-day:'numeric',
-month:'long',
-year:'numeric'
-});
+function formatThai(dateStr){
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('th-TH',{
+    day:'numeric',
+    month:'long',
+    year:'numeric'
+  });
+}
+
+let thaiDate;
+
+if(ev.start_date === ev.end_date){
+  thaiDate = formatThai(ev.start_date);
+}else{
+  thaiDate = formatThai(ev.start_date) + " - " + formatThai(ev.end_date);
+}
+
 
 eventList.innerHTML+=`
 <div class="event">
@@ -431,4 +438,3 @@ loadEvents();
 
 </body>
 </html>
-
