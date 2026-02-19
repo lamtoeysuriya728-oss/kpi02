@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPI System</title>
+
+<style>
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+font-family:'Prompt',sans-serif;
+background:linear-gradient(135deg,#1e3a8a,#2563eb);
+color:white;
+}
+
+.loading{
+text-align:center;
+}
+
+.spinner{
+width:60px;
+height:60px;
+border:6px solid rgba(255,255,255,.3);
+border-top:6px solid white;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin:auto;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="loading">
+<div class="spinner"></div>
+<p style="margin-top:20px;">กำลังตรวจสอบระบบ...</p>
+</div>
+
+<script>
+
+// ตรวจสอบ session
+const code = localStorage.getItem("managerCode");
+
+// ถ้ามี session → ไป dashboard
+if(code && code !== "undefined" && code !== "null"){
+window.location.href = "dashboard-overview.html";
+}
+else{
+// ถ้าไม่มี → ไป login
+window.location.href = "login.html";
+}
+
+</script>
+
+</body>
+</html>
