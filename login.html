@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
+<title>กลุ่มการตลาดโซน 2</title>
+
+<style>
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+height:100vh;
+font-family:'Prompt',sans-serif;
+background:linear-gradient(135deg,#1e3a8a,#2563eb);
+display:flex;
+flex-direction:column;
+color:white;
+}
+
+/* CENTER */
+
+.main{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.container{
+display:flex;
+gap:70px;
+align-items:center;
+max-width:1100px;
+width:100%;
+justify-content:center;
+}
+
+/* MOBILE */
+
+@media(max-width:900px){
+.container{flex-direction:column;}
+.card,.calendar{width:100%!important;}
+}
+
+/* CARD */
+
+.card{
+width:360px;
+padding:32px;
+border-radius:30px;
+background:rgba(255,255,255,.18);
+backdrop-filter:blur(40px);
+box-shadow:0 70px 160px rgba(0,0,0,.45);
+text-align:center;
+}
+
+/* AVATAR */
+
+.avatar{
+width:105px;
+height:105px;
+border-radius:50%;
+background:white;
+margin:auto;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+font-size:42px;
+}
+
+.avatar img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* INPUT */
+
+input{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+margin-top:20px;
+font-size:16px;
+}
+
+/* BUTTON */
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+margin-top:18px;
+background:#4f46e5;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+button:disabled{
+opacity:.45;
+cursor:not-allowed;
+background:#94a3b8;
+}
+
+/* PROFILE */
+
+.profile{
+margin-top:15px;
+min-height:55px;
+}
+
+/* CALENDAR */
+
+.calendar{
+width:460px;
+max-height:520px;
+overflow:auto;
+padding:26px;
+border-radius:30px;
+background:rgba(255,255,255,.18);
+backdrop-filter:blur(40px);
+}
+
+.event{
+padding:14px;
+border-radius:12px;
+background:rgba(255,255,255,.25);
+margin-bottom:10px;
+font-size:14px;
+}
+
+/* NEWS */
+
+.news{
+height:48px;
+background:#020617;
+display:flex;
+align-items:center;
+overflow:hidden;
+border-top:1px solid rgba(255,255,255,.15);
+}
+
+.ticker{
+white-space:nowrap;
+padding-left:100%;
+animation:ticker 20s linear infinite;
+}
+
+@keyframes ticker{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+
+/* LOADING */
+
+.loading{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.75);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+backdrop-filter:blur(6px);
+z-index:999;
+visibility:hidden;
+opacity:0;
+transition:.25s;
+}
+
+.loading.show{
+visibility:visible;
+opacity:1;
+}
+
+.spinner{
+width:65px;
+height:65px;
+border:6px solid rgba(255,255,255,.2);
+border-top:6px solid white;
+border-radius:50%;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+.loadingText{
+margin-top:20px;
+font-size:19px;
+font-weight:500;
+letter-spacing:.4px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="main">
+<div class="container">
+
+<!-- LOGIN -->
+<div class="card">
+
+<div class="avatar" id="avatar">👤</div>
+
+<input
+id="code"
+maxlength="8"
+placeholder="รหัสประจำตัว 8 หลัก"
+inputmode="numeric"
+autofocus
+>
+
+<div class="profile">
+<div id="name"></div>
+<div id="position"></div>
+
+<button id="loginBtn" disabled>
+เข้าสู่ระบบ
+</button>
+</div>
+
+</div>
+
+
+<!-- CALENDAR -->
+<div class="calendar">
+<h2>📅 กิจกรรมเดือนนี้</h2>
+<div id="eventList"></div>
+</div>
+
+</div>
+</div>
+
+
+<!-- NEWS -->
+<div class="news">
+<div class="ticker">
+📢 แจ้งเตือน: ส่งผลงานภายในวันที่ 25 | 🚀 เปิดตัวแคมเปญใหม่ |
+🎉 แสดงความยินดี MDRT | 📊 ประชุมผู้จัดการประจำเดือน
+</div>
+</div>
+
+
+
+<!-- LOADING -->
+<div id="loading" class="loading">
+<div class="spinner"></div>
+<div class="loadingText" id="loadingText">
+กำลังโหลดข้อมูล...
+</div>
+</div>
+
+
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbw6HIIbDBybUrADHLcbiJFri6ylIaCnEgcBajViqD8VTaXuHCT7EuEJ8-BwXRlr_4tZBA/exec";
+
+let managerData=null;
+
+const loginBtn=document.getElementById("loginBtn");
+const codeInput=document.getElementById("code");
+
+/* 🔥 FIX EVENT — เสถียร */
+loginBtn.addEventListener("click",login);
+
+
+/* LOADING */
+
+function showLoading(text){
+loading.classList.add("show");
+loadingText.innerText=text;
+}
+
+function hideLoading(){
+loading.classList.remove("show");
+}
+
+
+/* LOGIN CHECK */
+
+codeInput.addEventListener("input",checkCode);
+
+async function checkCode(){
+
+loginBtn.disabled=true;
+
+if(codeInput.value.length!==8){
+
+name.innerText="";
+position.innerText="";
+avatar.innerHTML="👤";
+return;
+}
+
+showLoading("กำลังตรวจสอบผู้ใช้งาน...");
+
+try{
+
+const res=await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({code:codeInput.value})
+});
+
+const data=await res.json();
+
+hideLoading();
+
+if(data.status==="success"){
+
+managerData=data;
+
+avatar.innerHTML=`<img src="${data.image}">`;
+name.innerText=data.name;
+position.innerText=data.position;
+
+loginBtn.disabled=false;
+
+}else{
+
+managerData=null;
+avatar.innerHTML="👤";
+name.innerText="";
+position.innerText="";
+}
+
+}catch{
+hideLoading();
+alert("เชื่อมต่อ Server ไม่ได้");
+}
+
+}
+
+
+/* LOGIN */
+
+function login(){
+
+if(!managerData) return;
+
+// 🔥 ใช้ค่าจาก input โดยตรง (กันกรณี API ไม่ส่ง code กลับมา)
+const finalCode = codeInput.value.trim();
+
+if(finalCode.length !== 8){
+alert("รหัสไม่ถูกต้อง");
+return;
+}
+
+// เคลียร์ของเก่า
+localStorage.removeItem("managerCode");
+localStorage.removeItem("managerName");
+
+// เก็บ session
+localStorage.setItem("managerCode", finalCode);
+localStorage.setItem("managerName", String(managerData.name || ""));
+
+console.log("SET CODE:", localStorage.getItem("managerCode"));
+
+window.location.href = "dashboard-overview.html";
+
+}
+
+
+
+/* LOAD EVENTS */
+
+async function loadEvents(){
+
+showLoading("กำลังโหลดข้อมูล...");
+
+const today=new Date();
+const monthStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+
+try{
+
+const res=await fetch(`${API_URL}?month=${monthStr}`);
+let events=await res.json();
+
+hideLoading();
+
+events.sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+events.forEach(ev=>{
+
+const thaiDate=new Date(ev.date)
+.toLocaleDateString('th-TH',{
+day:'numeric',
+month:'long',
+year:'numeric'
+});
+
+eventList.innerHTML+=`
+<div class="event">
+📅 ${thaiDate}<br>
+⏰ ${ev.time}<br>
+📌 ${ev.title}<br>
+📍 ${ev.location}
+</div>`;
+});
+
+}catch{
+hideLoading();
+}
+
+}
+
+loadEvents();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<title>ภาพรวมผลงาน</title>
+
+<style>
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:'Prompt',sans-serif;
+background:linear-gradient(135deg,#1e3a8a,#2563eb);
+color:white;
+display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:240px;
+min-height:100vh;
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(20px);
+padding:25px;
+}
+
+.manager{
+font-size:20px;
+font-weight:600;
+margin-bottom:35px;
+}
+
+.menu{
+display:block;
+color:white;
+text-decoration:none;
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+transition:.25s;
+}
+
+.menu:hover{
+background:rgba(255,255,255,.2);
+}
+
+.active{
+background:#4f46e5;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:40px;
+}
+
+.editBox{
+background:rgba(255,255,255,.15);
+padding:25px;
+border-radius:18px;
+max-width:420px;
+}
+
+select{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+margin-top:10px;
+font-size:15px;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+margin-top:15px;
+background:#4f46e5;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+/* ===== LOADING POPUP ===== */
+
+.loadingPopup{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.6);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:999;
+visibility:hidden;
+opacity:0;
+transition:.25s;
+}
+
+.loadingPopup.show{
+visibility:visible;
+opacity:1;
+}
+
+.popupBox{
+background:white;
+color:black;
+padding:30px 40px;
+border-radius:15px;
+text-align:center;
+min-width:250px;
+}
+
+.spinner{
+width:45px;
+height:45px;
+border:5px solid #ddd;
+border-top:5px solid #4f46e5;
+border-radius:50%;
+margin:auto;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+<div class="manager" id="managerName">
+Loading...
+</div>
+
+<a href="dashboard-overview.html" class="menu active">
+📊 ภาพรวม
+</a>
+
+<a href="dashboard-ranking.html" class="menu">
+🏆 Ranking
+</a>
+
+<a href="dashboard-events.html" class="menu">
+📅 Events
+</a>
+
+<a href="login.html" class="menu" onclick="logout()">
+🚪 Logout
+</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="editBox">
+<h3>เพิ่มข้อมูล KPI ปี 2569</h3>
+
+<label>เลือกเดือน</label>
+
+<select id="monthSelect">
+<option value="">-- เลือกเดือน --</option>
+<option value="1">มกราคม</option>
+<option value="2">กุมภาพันธ์</option>
+<option value="3">มีนาคม</option>
+<option value="4">เมษายน</option>
+<option value="5">พฤษภาคม</option>
+<option value="6">มิถุนายน</option>
+<option value="7">กรกฎาคม</option>
+<option value="8">สิงหาคม</option>
+<option value="9">กันยายน</option>
+<option value="10">ตุลาคม</option>
+<option value="11">พฤศจิกายน</option>
+<option value="12">ธันวาคม</option>
+</select>
+
+<button onclick="openKPI()">
+✏️ เปิดชีตเพื่อแก้ไข
+</button>
+
+</div>
+
+</div>
+
+<!-- ===== LOADING POPUP ===== -->
+<div id="loadingPopup" class="loadingPopup">
+<div class="popupBox">
+<div class="spinner"></div>
+<div style="margin-top:15px;font-weight:500;">
+กำลังโหลดข้อมูล...
+</div>
+</div>
+</div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbyJvNE73rWaNH6BH5ROHM858OFcepiD7glaFbLJhAg975IeG4YexODy6Wxn2gYu5gVe/exec";
+
+/* ===== SESSION CHECK ===== */
+
+let code = localStorage.getItem("managerCode");
+let name = localStorage.getItem("managerName");
+
+if(!code || code === "undefined" || code === "null"){
+alert("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+localStorage.clear();
+window.location.href = "login.html";
+}
+
+code = String(code).trim();
+
+document.getElementById("managerName").innerText = name || "ผู้ใช้งาน";
+
+
+/* ===== OPEN KPI ===== */
+
+function openKPI(){
+
+const month = document.getElementById("monthSelect").value;
+
+if(!month){
+alert("กรุณาเลือกเดือนก่อน");
+return;
+}
+
+const popup = document.getElementById("loadingPopup");
+popup.classList.add("show");
+
+fetch(`${API_URL}?action=getlink&code=${encodeURIComponent(code)}&month=${month}`)
+.then(res=>res.json())
+.then(data=>{
+
+popup.classList.remove("show");
+
+if(data.status==="success"){
+window.open(data.link,"_blank");
+}else{
+alert("ไม่พบลิงก์เดือนนี้");
+}
+
+})
+.catch(()=>{
+popup.classList.remove("show");
+alert("เชื่อมต่อระบบไม่ได้");
+});
+
+}
+
+
+/* ===== LOGOUT ===== */
+
+function logout(){
+localStorage.clear();
+}
+
+</script>
+
+</body>
+</html>

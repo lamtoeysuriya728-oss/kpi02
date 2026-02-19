@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
+<title>Ranking</title>
+
+<style>
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:'Prompt',sans-serif;
+background:linear-gradient(135deg,#1e3a8a,#2563eb);
+color:white;
+display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:240px;
+min-height:100vh;
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(20px);
+padding:25px;
+}
+
+.manager{
+font-size:20px;
+font-weight:600;
+margin-bottom:35px;
+}
+
+.menu{
+display:block;
+color:white;
+text-decoration:none;
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+transition:.25s;
+}
+
+.menu:hover{
+background:rgba(255,255,255,.2);
+}
+
+.active{
+background:#4f46e5;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:40px;
+}
+
+/* RANKING CARD */
+
+.rankBox{
+background:rgba(255,255,255,.15);
+padding:25px;
+border-radius:18px;
+backdrop-filter:blur(12px);
+max-width:900px;
+}
+
+select{
+width:260px;
+padding:10px;
+border:none;
+border-radius:8px;
+margin-bottom:20px;
+font-size:15px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+padding:12px;
+text-align:left;
+}
+
+th{
+background:rgba(0,0,0,.25);
+}
+
+tr:nth-child(even){
+background:rgba(255,255,255,.05);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+<div class="manager" id="managerName">
+Loading...
+</div>
+
+<a href="dashboard-overview.html" class="menu">
+📊 ภาพรวม
+</a>
+
+<a href="dashboard-ranking.html" class="menu active">
+🏆 Ranking
+</a>
+
+<a href="dashboard-events.html" class="menu">
+📅 Events
+</a>
+
+<a href="login.html" class="menu">
+🚪 Logout
+</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<h2>🏆 Ranking รายเดือน</h2>
+
+<div class="rankBox">
+
+<label>เลือกเดือน</label>
+
+<select id="monthSelect" onchange="loadRanking()">
+<option value="">-- เลือกเดือน --</option>
+<option value="1">มกราคม</option>
+<option value="2">กุมภาพันธ์</option>
+<option value="3">มีนาคม</option>
+<option value="4">เมษายน</option>
+<option value="5">พฤษภาคม</option>
+<option value="6">มิถุนายน</option>
+<option value="7">กรกฎาคม</option>
+<option value="8">สิงหาคม</option>
+<option value="9">กันยายน</option>
+<option value="10">ตุลาคม</option>
+<option value="11">พฤศจิกายน</option>
+<option value="12">ธันวาคม</option>
+</select>
+
+<table>
+<thead>
+<tr>
+<th>อันดับ</th>
+<th>ชื่อ</th>
+<th>ยอดรวม</th>
+</tr>
+</thead>
+<tbody id="rankingBody">
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+
+<script>
+
+const API_URL = "PUT_PRODUCTION_APPS_SCRIPT_URL_HERE";
+
+/* AUTH CHECK */
+
+let code = localStorage.getItem("managerCode");
+let name = localStorage.getItem("managerName");
+
+if(!code){
+location.href="login.html";
+}
+
+document.getElementById("managerName").innerText = name;
+
+
+/* LOAD RANKING */
+
+function loadRanking(){
+
+const month = document.getElementById("monthSelect").value;
+if(!month) return;
+
+fetch(`${API_URL}?action=ranking&month=${month}`)
+.then(res=>res.json())
+.then(data=>{
+
+if(data.status!=="success"){
+alert("โหลดข้อมูลไม่ได้");
+return;
+}
+
+const tbody = document.getElementById("rankingBody");
+tbody.innerHTML="";
+
+data.ranking.forEach((item,index)=>{
+
+tbody.innerHTML += `
+<tr>
+<td>${index+1}</td>
+<td>${item.name}</td>
+<td>${item.total.toLocaleString()}</td>
+</tr>
+`;
+
+});
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
