@@ -3,87 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-
 <title>Ranking</title>
 
 <style>
-
 *{box-sizing:border-box;}
 
 body{
 margin:0;
 font-family:'Prompt',sans-serif;
-background:linear-gradient(135deg,#1e3a8a,#2563eb);
+background:#0f172a;
 color:white;
 display:flex;
+min-height:100vh;
+overflow-x:hidden;
 }
 
-/* SIDEBAR */
+/* ===== TOPBAR ===== */
+
+.topbar{
+display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:60px;
+background:#1e293b;
+align-items:center;
+padding:0 20px;
+z-index:1002;
+}
+
+.menuBtn{
+font-size:24px;
+cursor:pointer;
+margin-right:15px;
+}
+
+.topTitle{
+font-weight:600;
+}
+
+/* ===== SIDEBAR ===== */
 
 .sidebar{
-width:240px;
-min-height:100vh;
-background:rgba(255,255,255,.12);
-backdrop-filter:blur(20px);
-padding:25px;
+width:250px;
+background:#1e293b;
+padding:30px 20px;
+display:flex;
+flex-direction:column;
+transition:.3s;
 }
 
-.manager{
-font-size:20px;
+.sidebar h3{
+margin:0 0 30px 0;
 font-weight:600;
-margin-bottom:35px;
 }
 
 .menu{
-display:block;
-color:white;
-text-decoration:none;
-padding:12px;
+padding:12px 14px;
 border-radius:10px;
-margin-bottom:10px;
-transition:.25s;
+text-decoration:none;
+color:#cbd5e1;
+margin-bottom:8px;
+transition:.2s;
+display:flex;
+align-items:center;
+gap:8px;
 }
 
 .menu:hover{
-background:rgba(255,255,255,.2);
+background:#334155;
+color:white;
 }
 
-.active{
+.menu.active{
 background:#4f46e5;
+color:white;
 }
 
-/* MAIN */
+/* ===== OVERLAY ===== */
+
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.5);
+z-index:1000;
+display:none;
+}
+
+.overlay.show{
+display:block;
+}
+
+/* ===== MAIN ===== */
 
 .main{
 flex:1;
-padding:40px;
+padding:50px;
+display:flex;
+flex-direction:column;
+align-items:center;
 }
 
-/* RANKING CARD */
+.main h2{
+align-self:flex-start;
+margin-bottom:20px;
+}
 
-.rankBox{
-background:rgba(255,255,255,.15);
-padding:25px;
-border-radius:18px;
-backdrop-filter:blur(12px);
-max-width:900px;
+/* ===== CARD ===== */
+
+.card{
+background:#1e293b;
+padding:30px;
+border-radius:16px;
+width:100%;
+max-width:950px;
+box-shadow:0 10px 30px rgba(0,0,0,.4);
 }
 
 select{
-width:260px;
-padding:10px;
-border:none;
+width:100%;
+max-width:300px;
+padding:14px;
 border-radius:8px;
-margin-bottom:20px;
+border:none;
+margin:10px 0 20px 0;
 font-size:15px;
+}
+
+.tableWrapper{
+width:100%;
+overflow-x:auto;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:10px;
+min-width:500px;
 }
 
 th,td{
@@ -92,35 +149,66 @@ text-align:left;
 }
 
 th{
-background:rgba(0,0,0,.25);
+background:#334155;
 }
 
 tr:nth-child(even){
 background:rgba(255,255,255,.05);
 }
 
+/* ===== MOBILE ===== */
+
+@media(max-width:768px){
+
+.topbar{
+display:flex;
+}
+
+.sidebar{
+position:fixed;
+left:-260px;
+top:0;
+bottom:0;
+z-index:1001;
+}
+
+.sidebar.show{
+left:0;
+}
+
+.main{
+padding:100px 20px 30px 20px;
+}
+
+}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-
-<div class="manager" id="managerName">
-Loading...
+<!-- TOPBAR -->
+<div class="topbar">
+<div class="menuBtn" onclick="openMenu()">☰</div>
+<div class="topTitle">Ranking รายเดือน</div>
 </div>
 
-<a href="dashboard-overview.html" class="menu active">
-📊 รายงาน KPI 
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+
+<h3 id="managerName">Loading...</h3>
+
+<a href="dashboard-overview.html" class="menu">
+📊 รายงาน KPI
 </a>
 
-<a href="dashboard-ranking.html" class="menu">
+<a href="dashboard-ranking.html" class="menu active">
 🏆 ผลงานรวมโซน
 </a>
 
 <a href="dashboard-events.html" class="menu">
-📅 ปฎิทิน
+📅 ปฏิทิน
 </a>
 
 <a href="login.html" class="menu" onclick="logout()">
@@ -134,7 +222,7 @@ Loading...
 
 <h2>🏆 Ranking รายเดือน</h2>
 
-<div class="rankBox">
+<div class="card">
 
 <label>เลือกเดือน</label>
 
@@ -154,6 +242,7 @@ Loading...
 <option value="12">ธันวาคม</option>
 </select>
 
+<div class="tableWrapper">
 <table>
 <thead>
 <tr>
@@ -165,17 +254,29 @@ Loading...
 <tbody id="rankingBody">
 </tbody>
 </table>
-
 </div>
 
 </div>
 
+</div>
 
 <script>
 
 const API_URL = "PUT_PRODUCTION_APPS_SCRIPT_URL_HERE";
 
-/* AUTH CHECK */
+/* ===== MENU CONTROL ===== */
+
+function openMenu(){
+document.getElementById("sidebar").classList.add("show");
+document.getElementById("overlay").classList.add("show");
+}
+
+function closeMenu(){
+document.getElementById("sidebar").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
+}
+
+/* ===== AUTH CHECK ===== */
 
 let code = localStorage.getItem("managerCode");
 let name = localStorage.getItem("managerName");
@@ -184,10 +285,9 @@ if(!code){
 location.href="login.html";
 }
 
-document.getElementById("managerName").innerText = name;
+document.getElementById("managerName").innerText = name || "ผู้ใช้งาน";
 
-
-/* LOAD RANKING */
+/* ===== LOAD RANKING ===== */
 
 function loadRanking(){
 
@@ -218,12 +318,19 @@ tbody.innerHTML += `
 
 });
 
+})
+.catch(()=>{
+alert("เชื่อมต่อระบบไม่ได้");
 });
+}
 
+/* ===== LOGOUT ===== */
+
+function logout(){
+localStorage.clear();
 }
 
 </script>
 
 </body>
 </html>
-
