@@ -12,88 +12,119 @@
 body{
 margin:0;
 font-family:'Prompt',sans-serif;
-background:linear-gradient(135deg,#1e3a8a,#2563eb);
+background:#0f172a;
 color:white;
 display:flex;
 min-height:100vh;
 overflow-x:hidden;
 }
 
-/* ===== MOBILE MENU BUTTON ===== */
+/* ===== TOPBAR (MOBILE) ===== */
 
-.menuToggle{
+.topbar{
 display:none;
 position:fixed;
-top:15px;
-left:15px;
+top:0;
+left:0;
+right:0;
+height:60px;
+background:#1e293b;
+align-items:center;
+padding:0 20px;
+z-index:1002;
+}
+
+.menuBtn{
 font-size:24px;
-background:#4f46e5;
-border:none;
-color:white;
-padding:8px 12px;
-border-radius:8px;
-z-index:1001;
 cursor:pointer;
+margin-right:15px;
+}
+
+.topTitle{
+font-weight:600;
 }
 
 /* ===== SIDEBAR ===== */
 
 .sidebar{
-width:240px;
-min-height:100vh;
-background:rgba(255,255,255,.12);
-backdrop-filter:blur(20px);
-padding:25px;
+width:250px;
+background:#1e293b;
+padding:30px 20px;
+display:flex;
+flex-direction:column;
 transition:.3s;
 }
 
-.manager{
-font-size:20px;
+.sidebar h3{
+margin:0 0 30px 0;
 font-weight:600;
-margin-bottom:35px;
 }
 
 .menu{
-display:block;
-color:white;
-text-decoration:none;
-padding:12px;
+padding:12px 14px;
 border-radius:10px;
-margin-bottom:10px;
-transition:.25s;
+text-decoration:none;
+color:#cbd5e1;
+margin-bottom:8px;
+transition:.2s;
+display:flex;
+align-items:center;
+gap:8px;
 }
 
 .menu:hover{
-background:rgba(255,255,255,.2);
+background:#334155;
+color:white;
 }
 
-.active{
+.menu.active{
 background:#4f46e5;
+color:white;
+}
+
+/* ===== OVERLAY ===== */
+
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.5);
+z-index:1000;
+display:none;
+}
+
+.overlay.show{
+display:block;
 }
 
 /* ===== MAIN ===== */
 
 .main{
 flex:1;
-padding:40px;
+padding:50px;
 display:flex;
 justify-content:center;
 align-items:flex-start;
 }
 
-.editBox{
-background:rgba(255,255,255,.15);
-padding:25px;
-border-radius:18px;
+.card{
+background:#1e293b;
+padding:30px;
+border-radius:16px;
 width:100%;
-max-width:420px;
+max-width:450px;
+box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+.card h3{
+margin-top:0;
+margin-bottom:20px;
 }
 
 select{
 width:100%;
 padding:14px;
-border:none;
 border-radius:8px;
+border:none;
 margin-top:10px;
 font-size:15px;
 }
@@ -114,20 +145,19 @@ button:hover{
 opacity:.9;
 }
 
-/* ===== LOADING POPUP ===== */
+/* ===== LOADING ===== */
 
 .loadingPopup{
 position:fixed;
 inset:0;
-background:rgba(0,0,0,.6);
+background:rgba(0,0,0,.7);
 display:flex;
 justify-content:center;
 align-items:center;
-z-index:999;
+z-index:2000;
 visibility:hidden;
 opacity:0;
 transition:.25s;
-padding:20px;
 }
 
 .loadingPopup.show{
@@ -138,10 +168,10 @@ opacity:1;
 .popupBox{
 background:white;
 color:black;
-padding:25px;
+padding:30px;
 border-radius:15px;
 text-align:center;
-width:100%;
+width:90%;
 max-width:320px;
 }
 
@@ -159,24 +189,20 @@ animation:spin 1s linear infinite;
 to{transform:rotate(360deg);}
 }
 
-/* ===== MOBILE RESPONSIVE ===== */
+/* ===== MOBILE ===== */
 
 @media(max-width:768px){
 
-body{
-flex-direction:column;
-}
-
-.menuToggle{
-display:block;
+.topbar{
+display:flex;
 }
 
 .sidebar{
 position:fixed;
 left:-260px;
 top:0;
-height:100%;
-z-index:1000;
+bottom:0;
+z-index:1001;
 }
 
 .sidebar.show{
@@ -184,27 +210,29 @@ left:0;
 }
 
 .main{
-padding:80px 20px 30px 20px;
+padding:100px 20px 30px 20px;
 }
 
 }
-
 </style>
 </head>
 
 <body>
 
-<button class="menuToggle" onclick="toggleMenu()">☰</button>
+<div class="topbar">
+<div class="menuBtn" onclick="openMenu()">☰</div>
+<div class="topTitle">รายงาน KPI</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
 
-<div class="manager" id="managerName">
-Loading...
-</div>
+<h3 id="managerName">Loading...</h3>
 
 <a href="dashboard-overview.html" class="menu active">
-📊 รายงาน KPI 
+📊 รายงาน KPI
 </a>
 
 <a href="dashboard-ranking.html" class="menu">
@@ -224,7 +252,7 @@ Loading...
 <!-- MAIN -->
 <div class="main">
 
-<div class="editBox">
+<div class="card">
 <h3>เพิ่มข้อมูล KPI ปี 2569</h3>
 
 <label>เลือกเดือน</label>
@@ -245,9 +273,7 @@ Loading...
 <option value="12">ธันวาคม</option>
 </select>
 
-<button onclick="openKPI()">
-✏️ เปิดชีตเพื่อแก้ไข
-</button>
+<button onclick="openKPI()">✏️ เปิดชีตเพื่อแก้ไข</button>
 
 </div>
 
@@ -267,10 +293,16 @@ Loading...
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyJvNE73rWaNH6BH5ROHM858OFcepiD7glaFbLJhAg975IeG4YexODy6Wxn2gYu5gVe/exec";
 
-/* ===== MOBILE MENU ===== */
+/* ===== MENU CONTROL ===== */
 
-function toggleMenu(){
-document.getElementById("sidebar").classList.toggle("show");
+function openMenu(){
+document.getElementById("sidebar").classList.add("show");
+document.getElementById("overlay").classList.add("show");
+}
+
+function closeMenu(){
+document.getElementById("sidebar").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
 }
 
 /* ===== SESSION CHECK ===== */
@@ -278,13 +310,12 @@ document.getElementById("sidebar").classList.toggle("show");
 let code = localStorage.getItem("managerCode");
 let name = localStorage.getItem("managerName");
 
-if(!code || code === "undefined" || code === "null"){
+if(!code || code==="undefined" || code==="null"){
 alert("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่");
 localStorage.clear();
-window.location.href = "login.html";
+window.location.href="login.html";
 }
 
-code = String(code).trim();
 document.getElementById("managerName").innerText = name || "ผู้ใช้งาน";
 
 /* ===== OPEN KPI ===== */
@@ -292,7 +323,6 @@ document.getElementById("managerName").innerText = name || "ผู้ใช้�
 function openKPI(){
 
 const month = document.getElementById("monthSelect").value;
-
 if(!month){
 alert("กรุณาเลือกเดือนก่อน");
 return;
