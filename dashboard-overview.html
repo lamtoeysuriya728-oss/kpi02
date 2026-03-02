@@ -7,7 +7,6 @@
 <title>รายงาน KPI</title>
 
 <style>
-
 *{box-sizing:border-box;}
 
 body{
@@ -16,9 +15,28 @@ font-family:'Prompt',sans-serif;
 background:linear-gradient(135deg,#1e3a8a,#2563eb);
 color:white;
 display:flex;
+min-height:100vh;
+overflow-x:hidden;
 }
 
-/* SIDEBAR */
+/* ===== MOBILE MENU BUTTON ===== */
+
+.menuToggle{
+display:none;
+position:fixed;
+top:15px;
+left:15px;
+font-size:24px;
+background:#4f46e5;
+border:none;
+color:white;
+padding:8px 12px;
+border-radius:8px;
+z-index:1001;
+cursor:pointer;
+}
+
+/* ===== SIDEBAR ===== */
 
 .sidebar{
 width:240px;
@@ -26,6 +44,7 @@ min-height:100vh;
 background:rgba(255,255,255,.12);
 backdrop-filter:blur(20px);
 padding:25px;
+transition:.3s;
 }
 
 .manager{
@@ -52,23 +71,27 @@ background:rgba(255,255,255,.2);
 background:#4f46e5;
 }
 
-/* MAIN */
+/* ===== MAIN ===== */
 
 .main{
 flex:1;
 padding:40px;
+display:flex;
+justify-content:center;
+align-items:flex-start;
 }
 
 .editBox{
 background:rgba(255,255,255,.15);
 padding:25px;
 border-radius:18px;
+width:100%;
 max-width:420px;
 }
 
 select{
 width:100%;
-padding:12px;
+padding:14px;
 border:none;
 border-radius:8px;
 margin-top:10px;
@@ -77,13 +100,13 @@ font-size:15px;
 
 button{
 width:100%;
-padding:12px;
+padding:14px;
 border:none;
 border-radius:8px;
 margin-top:15px;
 background:#4f46e5;
 color:white;
-font-size:15px;
+font-size:16px;
 cursor:pointer;
 }
 
@@ -104,6 +127,7 @@ z-index:999;
 visibility:hidden;
 opacity:0;
 transition:.25s;
+padding:20px;
 }
 
 .loadingPopup.show{
@@ -114,10 +138,11 @@ opacity:1;
 .popupBox{
 background:white;
 color:black;
-padding:30px 40px;
+padding:25px;
 border-radius:15px;
 text-align:center;
-min-width:250px;
+width:100%;
+max-width:320px;
 }
 
 .spinner{
@@ -134,13 +159,45 @@ animation:spin 1s linear infinite;
 to{transform:rotate(360deg);}
 }
 
+/* ===== MOBILE RESPONSIVE ===== */
+
+@media(max-width:768px){
+
+body{
+flex-direction:column;
+}
+
+.menuToggle{
+display:block;
+}
+
+.sidebar{
+position:fixed;
+left:-260px;
+top:0;
+height:100%;
+z-index:1000;
+}
+
+.sidebar.show{
+left:0;
+}
+
+.main{
+padding:80px 20px 30px 20px;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
+<button class="menuToggle" onclick="toggleMenu()">☰</button>
+
 <!-- SIDEBAR -->
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
 
 <div class="manager" id="managerName">
 Loading...
@@ -155,7 +212,7 @@ Loading...
 </a>
 
 <a href="dashboard-events.html" class="menu">
-📅 ปฎิทิน
+📅 ปฏิทิน
 </a>
 
 <a href="login.html" class="menu" onclick="logout()">
@@ -196,7 +253,7 @@ Loading...
 
 </div>
 
-<!-- ===== LOADING POPUP ===== -->
+<!-- LOADING -->
 <div id="loadingPopup" class="loadingPopup">
 <div class="popupBox">
 <div class="spinner"></div>
@@ -210,6 +267,12 @@ Loading...
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyJvNE73rWaNH6BH5ROHM858OFcepiD7glaFbLJhAg975IeG4YexODy6Wxn2gYu5gVe/exec";
 
+/* ===== MOBILE MENU ===== */
+
+function toggleMenu(){
+document.getElementById("sidebar").classList.toggle("show");
+}
+
 /* ===== SESSION CHECK ===== */
 
 let code = localStorage.getItem("managerCode");
@@ -222,9 +285,7 @@ window.location.href = "login.html";
 }
 
 code = String(code).trim();
-
 document.getElementById("managerName").innerText = name || "ผู้ใช้งาน";
-
 
 /* ===== OPEN KPI ===== */
 
@@ -243,7 +304,6 @@ popup.classList.add("show");
 fetch(`${API_URL}?action=getlink&code=${encodeURIComponent(code)}&month=${month}`)
 .then(res=>res.json())
 .then(data=>{
-
 popup.classList.remove("show");
 
 if(data.status==="success"){
@@ -251,15 +311,12 @@ window.open(data.link,"_blank");
 }else{
 alert("ไม่พบลิงก์เดือนนี้");
 }
-
 })
 .catch(()=>{
 popup.classList.remove("show");
 alert("เชื่อมต่อระบบไม่ได้");
 });
-
 }
-
 
 /* ===== LOGOUT ===== */
 
@@ -271,4 +328,3 @@ localStorage.clear();
 
 </body>
 </html>
-
