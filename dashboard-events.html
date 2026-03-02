@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<title>ปฏิทิน</title>
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:'Prompt',sans-serif;
+background:#0f172a;
+color:white;
+display:flex;
+min-height:100vh;
+overflow-x:hidden;
+}
+
+/* ===== TOPBAR ===== */
+
+.topbar{
+display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:60px;
+background:#1e293b;
+align-items:center;
+padding:0 20px;
+z-index:1002;
+}
+
+.menuBtn{
+font-size:24px;
+cursor:pointer;
+margin-right:15px;
+}
+
+.topTitle{
+font-weight:600;
+}
+
+/* ===== SIDEBAR ===== */
+
+.sidebar{
+width:250px;
+background:#1e293b;
+padding:30px 20px;
+display:flex;
+flex-direction:column;
+transition:.3s;
+}
+
+.sidebar h3{
+margin:0 0 30px 0;
+font-weight:600;
+}
+
+.menu{
+padding:12px 14px;
+border-radius:10px;
+text-decoration:none;
+color:#cbd5e1;
+margin-bottom:8px;
+transition:.2s;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+.menu:hover{
+background:#334155;
+color:white;
+}
+
+.menu.active{
+background:#4f46e5;
+color:white;
+}
+
+/* ===== OVERLAY ===== */
+
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.5);
+z-index:1000;
+display:none;
+}
+
+.overlay.show{
+display:block;
+}
+
+/* ===== MAIN ===== */
+
+.main{
+flex:1;
+padding:50px;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.calendarCard{
+background:#1e293b;
+padding:30px;
+border-radius:16px;
+width:100%;
+max-width:900px;
+box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+/* HEADER */
+
+.calendarHeader{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.calendarHeader button{
+background:#4f46e5;
+border:none;
+color:white;
+padding:8px 12px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* GRID */
+
+.calendarGrid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:10px;
+}
+
+.dayName{
+font-weight:600;
+text-align:center;
+color:#94a3b8;
+}
+
+.day{
+background:#334155;
+padding:15px;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+transition:.2s;
+}
+
+.day:hover{
+background:#475569;
+}
+
+.today{
+background:#4f46e5 !important;
+}
+
+/* ===== MOBILE ===== */
+
+@media(max-width:768px){
+
+.topbar{
+display:flex;
+}
+
+.sidebar{
+position:fixed;
+left:-260px;
+top:0;
+bottom:0;
+z-index:1001;
+}
+
+.sidebar.show{
+left:0;
+}
+
+.main{
+padding:100px 15px 30px 15px;
+}
+
+.calendarGrid{
+gap:6px;
+}
+
+.day{
+padding:10px;
+font-size:14px;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+<div class="menuBtn" onclick="openMenu()">☰</div>
+<div class="topTitle">ปฏิทิน</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+
+<h3 id="managerName">Loading...</h3>
+
+<a href="dashboard-overview.html" class="menu">
+📊 รายงาน KPI
+</a>
+
+<a href="dashboard-ranking.html" class="menu">
+🏆 ผลงานรวมโซน
+</a>
+
+<a href="dashboard-events.html" class="menu active">
+📅 ปฏิทิน
+</a>
+
+<a href="login.html" class="menu" onclick="logout()">
+🚪 ออกจากระบบ
+</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="calendarCard">
+
+<div class="calendarHeader">
+<button onclick="changeMonth(-1)">◀</button>
+<h2 id="monthYear"></h2>
+<button onclick="changeMonth(1)">▶</button>
+</div>
+
+<div class="calendarGrid" id="calendar"></div>
+
+</div>
+
+</div>
+
+<script>
+
+/* ===== MENU ===== */
+
+function openMenu(){
+document.getElementById("sidebar").classList.add("show");
+document.getElementById("overlay").classList.add("show");
+}
+
+function closeMenu(){
+document.getElementById("sidebar").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
+}
+
+/* ===== AUTH ===== */
+
+let name = localStorage.getItem("managerName");
+if(!localStorage.getItem("managerCode")){
+location.href="login.html";
+}
+document.getElementById("managerName").innerText = name || "ผู้ใช้งาน";
+
+/* ===== CALENDAR ===== */
+
+const monthNames = [
+"มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
+"กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
+];
+
+let currentDate = new Date();
+
+function renderCalendar(){
+
+const calendar = document.getElementById("calendar");
+calendar.innerHTML="";
+
+const year = currentDate.getFullYear();
+const month = currentDate.getMonth();
+
+document.getElementById("monthYear").innerText =
+monthNames[month] + " " + (year+543);
+
+const firstDay = new Date(year,month,1).getDay();
+const daysInMonth = new Date(year,month+1,0).getDate();
+
+const dayNames = ["อา","จ","อ","พ","พฤ","ศ","ส"];
+dayNames.forEach(d=>{
+calendar.innerHTML += `<div class="dayName">${d}</div>`;
+});
+
+for(let i=0;i<firstDay;i++){
+calendar.innerHTML += `<div></div>`;
+}
+
+for(let d=1; d<=daysInMonth; d++){
+
+let todayClass="";
+const today = new Date();
+
+if(
+d===today.getDate() &&
+month===today.getMonth() &&
+year===today.getFullYear()
+){
+todayClass="today";
+}
+
+calendar.innerHTML += `
+<div class="day ${todayClass}">
+${d}
+</div>
+`;
+}
+
+}
+
+function changeMonth(step){
+currentDate.setMonth(currentDate.getMonth()+step);
+renderCalendar();
+}
+
+renderCalendar();
+
+/* ===== LOGOUT ===== */
+
+function logout(){
+localStorage.clear();
+}
+
+</script>
+
+</body>
+</html>
